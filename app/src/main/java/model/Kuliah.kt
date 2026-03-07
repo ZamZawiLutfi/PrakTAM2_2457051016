@@ -1,4 +1,4 @@
-package com.PrakTAM2_2457051016.model
+package com.example.praktam2_2457051016.model
 
 import androidx.annotation.DrawableRes
 

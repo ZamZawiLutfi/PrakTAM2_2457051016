@@ -5,20 +5,28 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.praktam2_2457051016.model.Kuliah
+import com.example.praktam2_2457051016.model.KuliahSource
 import com.example.praktam2_2457051016.ui.theme.PrakTAM2_2457051016Theme
-// Sesuaikan import ini dengan package data class dan object Anda
-import com.PrakTAM2_2457051016.model.Kuliah
-import com.example.PrakTAM2_2457051016.model.KuliahSource
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,15 +34,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PrakTAM2_2457051016Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Column(modifier = Modifier.padding(innerPadding)) {
-                        Greeting(
-                            name = "ZamZawi Lutfi",
-                            npm = "2457051016"
-                        )
-
-                        KuliahList(kuliahList = KuliahSource.dummyKuliah)
-                    }
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    KuliahScreen()
                 }
             }
         }
@@ -42,37 +46,90 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun KuliahList(kuliahList: List<Kuliah>) {
-    LazyColumn {
-        items(kuliahList) { kuliah ->
-            KuliahCard(kuliah = kuliah)
-        }
-    }
-}
-
-@Composable
-fun KuliahCard(kuliah: Kuliah) {
-    Card(modifier = Modifier.padding(8.dp).fillMaxWidth()) {
-        Row(modifier = Modifier.padding(16.dp)) {
-            Image(
-                painter = painterResource(id = kuliah.imageRes),
-                contentDescription = null,
-                modifier = Modifier.size(64.dp)
+fun KuliahScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(vertical = 48.dp)
+    ) {
+        // Nama dan NPM sebagai header (Opsional tapi baik untuk tugas)
+        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+            Text(
+                text = "ZamZawi Lutfi",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(text = "Nama: ${kuliah.nama}")
-                Text(text = "Deskripsi: ${kuliah.deskripsi}")
-                Text(text = "SKS: ${kuliah.harga}")
-            }
+            Text(
+                text = "NPM: 2457051016",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        // Looping data menggunakan forEach sesuai instruksi gambar
+        KuliahSource.dummyKuliah.forEach { kuliah ->
+            DetailScreen(kuliah = kuliah)
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier, npm: String) {
-    Text(
-        text = "Halo, Saya $name dengan npm $npm siap belajar Compose!",
-        modifier = modifier.padding(16.dp)
-    )
+fun DetailScreen(kuliah: Kuliah) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+    ) {
+        Image(
+            painter = painterResource(id = kuliah.imageRes),
+            contentDescription = kuliah.nama,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp),
+            contentScale = ContentScale.Crop
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = kuliah.nama,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = kuliah.deskripsi,
+            style = MaterialTheme.typography.bodyLarge
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Teks SKS sesuai permintaan Anda (mengganti Harga: Rp)
+        Text(
+            text = "Beban Kuliah: ${kuliah.harga} SKS",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { /* TODO: Aksi */ },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Ambil Mata Kuliah")
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun KuliahPreview() {
+    PrakTAM2_2457051016Theme {
+        KuliahScreen()
+    }
 }
