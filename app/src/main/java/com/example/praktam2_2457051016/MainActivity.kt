@@ -18,6 +18,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -69,8 +71,8 @@ fun KuliahScreen() {
         Column(modifier = Modifier.padding(horizontal = 24.dp)) {
             Text(
                 text = "ZamZawi Lutfi",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = "NPM: 2457051016",
@@ -91,67 +93,71 @@ fun KuliahScreen() {
 fun DetailScreen(kuliah: Kuliah) {
     var isFavorite by remember { mutableStateOf(false) }
 
-    Column(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        // Menggunakan Box untuk menumpuk Icon di atas Image
-        Box {
-            Image(
-                painter = painterResource(id = kuliah.imageRes),
-                contentDescription = kuliah.nama,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                contentScale = ContentScale.Crop
-            )
-
-            // Tombol favorit di pojok kanan atas gambar
-            IconButton(
-                onClick = { isFavorite = !isFavorite },
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
-            ) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                    contentDescription = "Favorite Icon",
-                    tint = if (isFavorite) Color.Red else Color.White
+        Column {
+            Box {
+                Image(
+                    painter = painterResource(id = kuliah.imageRes),
+                    contentDescription = kuliah.nama,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentScale = ContentScale.Crop
                 )
+
+                IconButton(
+                    onClick = { isFavorite = !isFavorite },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Favorite Icon",
+                        tint = if (isFavorite) Color.Red else Color.White
+                    )
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = kuliah.nama,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
 
-        Text(
-            text = kuliah.nama,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
+                Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = kuliah.deskripsi,
+                    style = MaterialTheme.typography.bodyMedium
+                )
 
-        Text(
-            text = kuliah.deskripsi,
-            style = MaterialTheme.typography.bodyLarge
-        )
+                Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Beban Kuliah: ${kuliah.harga} SKS",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
 
-        Text(
-            text = "Beban Kuliah: ${kuliah.harga} SKS",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
+                Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = { /* TODO: Aksi */ },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Ambil Mata Kuliah")
+                Button(
+                    onClick = { /* TODO: Aksi */ },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Ambil Mata Kuliah")
+                }
+            }
         }
     }
 }
