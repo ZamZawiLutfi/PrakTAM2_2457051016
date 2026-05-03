@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +31,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,14 +39,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.praktam2_2457051016.model.Kuliah
-import com.example.praktam2_2457051016.model.KuliahSource
+import com.example.praktam2_2457051016.network.RetrofitClient
 import com.example.praktam2_2457051016.ui.theme.PrakTAM2_2457051016Theme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -70,43 +73,90 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun KuliahScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(vertical = 48.dp)
-    ) {
-        // Nama dan NPM sebagai header
-        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-            Text(
-                text = "ZamZawi Lutfi",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "NPM: 2457051016",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-        }
+    var kuliahList by remember { mutableStateOf<List<Kuliah>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var isError by remember { mutableStateOf(false) }
 
-        // Looping data kuliah
-        KuliahSource.dummyKuliah.forEach { kuliah ->
-            DetailScreen(kuliah = kuliah)
-            Spacer(modifier = Modifier.height(24.dp))
+    // Memuat data dari internet (API/Gist) sesuai LKP 8 & 9
+    LaunchedEffect(Unit) {
+        try {
+            kuliahList = RetrofitClient.instance.getKuliah()
+            isLoading = false
+            isError = false
+        } catch (e: Exception) {
+            isLoading = false
+            isError = true
+        }
+    }
+
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else if (isError || kuliahList.isEmpty()) {
+        // Tampilan Error sesuai gambar LKP 9
+        Box(
+            modifier = Modifier.fillMaxSize().padding(32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Gagal Memuat Data",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Red
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Pastikan koneksi internet Anda menyala",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(onClick = { isLoading = true }) {
+                    Text("Coba Lagi")
+                }
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(vertical = 48.dp)
+        ) {
+            // Header
+            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                Text(
+                    text = "ZamZawi Lutfi",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "NPM: 2457051016",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            // List data dari internet
+            kuliahList.forEach { kuliah ->
+                DetailScreen(kuliah = kuliah)
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }
 
 @Composable
 fun DetailScreen(kuliah: Kuliah) {
-    // State management untuk favorit, loading, coroutine scope, dan snackbar (LKP 7)
     var isFavorite by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
+    var isButtonLoading by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Membungkus Card dalam Box agar Snackbar bisa diletakkan di atas Card
     Box(modifier = Modifier.fillMaxWidth()) {
         Card(
             modifier = Modifier
@@ -119,9 +169,12 @@ fun DetailScreen(kuliah: Kuliah) {
         ) {
             Column {
                 Box {
-                    Image(
-                        painter = painterResource(id = kuliah.imageRes),
+                    // Menggunakan AsyncImage dari Coil (LKP 8)
+                    AsyncImage(
+                        model = kuliah.imageUrl,
                         contentDescription = kuliah.nama,
+                        placeholder = painterResource(id = R.drawable.ic_launcher_background), // Fallback image
+                        error = painterResource(id = R.drawable.ic_launcher_background),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp),
@@ -166,20 +219,19 @@ fun DetailScreen(kuliah: Kuliah) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Button dengan logika Loading dan Coroutine (LKP 7)
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                isLoading = true
-                                delay(2000) // Simulasi proses async
+                                isButtonLoading = true
+                                delay(2000)
                                 snackbarHostState.showSnackbar("Mata kuliah ${kuliah.nama} berhasil diambil!")
-                                isLoading = false
+                                isButtonLoading = false
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !isLoading
+                        enabled = !isButtonLoading
                     ) {
-                        if (isLoading) {
+                        if (isButtonLoading) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(20.dp),
@@ -197,18 +249,9 @@ fun DetailScreen(kuliah: Kuliah) {
             }
         }
 
-        // Menampilkan SnackbarHost di bagian bawah Card
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun KuliahPreview() {
-    PrakTAM2_2457051016Theme {
-        KuliahScreen()
     }
 }
